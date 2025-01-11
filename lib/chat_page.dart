@@ -17,7 +17,8 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController promptController = TextEditingController();
   final ScrollController scrollController = ScrollController();
   final List<Map<String, String>> _chats = [];
-  bool _prompting = true;
+  bool _prompting = true, _responseReady = false;
+  String _buff = '';
 
   @override
   void initState() {
@@ -138,14 +139,21 @@ class _ChatPageState extends State<ChatPage> {
 
   void _submit() {
     String prompt = promptController.text;
+    setState(() {
+      _prompting = false;
+    });
 
     if (prompt.isEmpty) return;
 
     prompt = prompt.trim();
     promptController.clear();
 
-    // TODO get model response
+    ProcessManager.input(prompt);
+
+    // TODO value-on-change listener implementation here
+
     setState(() {
+      _prompting = true;
       _chats.add({prompt: 'ans'});
     });
 
@@ -156,12 +164,15 @@ class _ChatPageState extends State<ChatPage> {
         curve: Curves.ease,
       );
     });
-    
-    // _prompting = false;
   }
 
   void _listener(String answer) {
+    _buff = _buff + answer;
 
+    if (answer.contains('#END#')) {
+      _buff.replaceAll('#END#', '');
+      _responseReady = true;
+    }
   }
 
   void _quit() {
