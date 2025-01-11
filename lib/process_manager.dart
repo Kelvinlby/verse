@@ -2,24 +2,14 @@ import 'dart:async';
 import 'dart:io';
 
 
-typedef ProcessCompletionCallback = void Function();
-bool xlaPreAllocatingStatus = true;
-int preAllocationRate = 75;
-
-
 abstract class ProcessManager {
   static Process? _process;
   static StreamSubscription? _stdoutSubscription;
   static StreamSubscription? _stderrSubscription;
-  static ProcessCompletionCallback? _onNaturalCompletion;
 
-  static Future<bool> start(String interpreterPath, String scriptPath, Map<String, String> env, {ProcessCompletionCallback? callback, Function? error}) async {
+  static Future<bool> start(String interpreterPath, String scriptPath, Map<String, String> env, {Function? listener, Function? finish, Function? error}) async {
     try {
       await stop();
-      _onNaturalCompletion = callback;
-
-      // Start the process with proper environment setup
-      env.addAll({'PYTHONUNBUFFERED': '1'});
 
       _process = await Process.start(
         interpreterPath,
@@ -28,36 +18,36 @@ abstract class ProcessManager {
         workingDirectory: Directory(scriptPath).parent.path,
       );
 
-      // Set up output handling
       _stdoutSubscription = _process?.stdout.listen((data) {
-          // print('Python stdout: ${String.fromCharCodes(data)}');
+          listener?.call(String.fromCharCodes(data));
         },
-        onError: (error) {} // print('stdout error: $error'),
+        onError: (e) { print(e); }
       );
 
       _stderrSubscription = _process?.stderr.listen((data) {
           error?.call(String.fromCharCodes(data));
         },
-        onError: (error) {} // print('stderr error: $error'),
+        onError: (e) { print(e); }
       );
 
-      // Set up process exit handling
       _process?.exitCode.then((code) {
-        _onNaturalCompletion?.call();
-        // print('Process exited with code: $code');
+        finish?.call();
         _cleanup();
-      }).catchError((error) {
-        // print('Process error: $error');
+      }).catchError((e) {
+        print(e);
         _cleanup();
       });
 
       return true;
     }
     catch (e) {
-      // print('Failed to start process: $e');
       await _cleanup();
       return false;
     }
+  }
+
+  static void input(String str) {
+    _process?.stdin.writeln(str);
   }
 
   static Future<void> stop() async {

@@ -43,6 +43,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   @override
+  void dispose() {
+    ProcessManager.stop();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: ProcessManager.isRunning ? ChatPage() : Launcher()

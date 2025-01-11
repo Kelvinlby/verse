@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:verse/main.dart';
 import 'package:file_picker/file_picker.dart';
@@ -16,6 +18,8 @@ class Launcher extends StatefulWidget {
 class _LauncherState extends State<Launcher> {
   final width = 320.0;
   final overflowLength = 23;
+  bool _xlaPreAllocatingStatus = true;
+  int _preAllocationRatio = 75;
 
   @override
   Widget build(BuildContext context) => FutureBuilder(
@@ -64,18 +68,18 @@ class _LauncherState extends State<Launcher> {
               ],
             ),
             Switch(
-              value: xlaPreAllocatingStatus,
+              value: _xlaPreAllocatingStatus,
               activeColor: theme.colorScheme.primary,
               onChanged: (bool value) {
                 setState(() {
-                  xlaPreAllocatingStatus = value;
+                  _xlaPreAllocatingStatus = value;
                 });
               },
             ),
           ],
         ),
         const SizedBox(height: 8),
-        if (xlaPreAllocatingStatus) Card(
+        if (_xlaPreAllocatingStatus) Card(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -84,7 +88,7 @@ class _LauncherState extends State<Launcher> {
                 children: [
                   const SizedBox(width: 24),
                   Text(
-                    'Allocation Ratio:  ${preAllocationRate.toString().padLeft(2, ' ')}%',
+                    'Allocation Ratio:  ${_preAllocationRatio.toString().padLeft(2, ' ')}%',
                     style: const TextStyle(
                       fontFamily: 'JetBrains Mono Bold',
                       fontSize: 17,
@@ -93,12 +97,12 @@ class _LauncherState extends State<Launcher> {
                 ],
               ),
               Slider(
-                value: preAllocationRate.toDouble(),
+                value: _preAllocationRatio.toDouble(),
                 max: 99,
-                label: preAllocationRate.toString(),
+                label: _preAllocationRatio.toString(),
                 onChanged: (double value) {
                   setState(() {
-                    preAllocationRate = value.round();
+                    _preAllocationRatio = value.round();
                   });
                 },
               ),
@@ -106,6 +110,69 @@ class _LauncherState extends State<Launcher> {
           )
         ),
       ],
+    );
+  }
+
+  void _pickPath(String id, String extension, Function setState) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: [extension],
+        dialogTitle: id
+    );
+
+    if(result != null) {
+      setState(() {
+        prefs.setString(id, result.files.first.path!);
+      });
+    }
+  }
+
+  void _launch(String interpreterPath, String scriptPath) {
+    Map<String, String> env = {'PYTHONUNBUFFERED': '1'};
+
+    if (_xlaPreAllocatingStatus) {
+      env.addAll({'XLA_PYTHON_CLIENT_MEM_FRACTION': '.$_preAllocationRatio'});
+    }
+    else {
+      env.addAll({'XLA_PYTHON_CLIENT_ALLOCATOR': 'platform'});
+    }
+
+    ProcessManager.start(interpreterPath, scriptPath, env, error: _alert);
+    print(ProcessManager.isRunning);
+    setState(() {});
+  }
+
+  void _alert(String message) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                SelectableText(
+                  message,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontFamily: 'JetBrains Mono',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              autofocus: true,
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -133,9 +200,9 @@ class _LauncherState extends State<Launcher> {
 
     return Center(
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: width),
+        constraints: BoxConstraints(maxWidth: width, maxHeight: 350),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 1),
             SizedBox(
@@ -208,25 +275,26 @@ class _LauncherState extends State<Launcher> {
             ),
             arg.contains('-xla') ? _xlaController(theme) : const SizedBox(height: 8),
             const SizedBox(height: 8),
+            FloatingActionButton.extended(
+              tooltip: 'Launch',
+              icon: Icon(Icons.rocket_launch),
+              label: const Text('Launch'),
+              onPressed: () {
+                if (interpreterPath == null || scriptPath == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Configuration not complete!'),
+                    ),
+                  );
+                }
+                else {
+                  _launch(interpreterPath, scriptPath);
+                }
+              },
+            )
           ],
         ),
       ),
     );
-  }
-}
-
-
-void _pickPath(String id, String extension, Function setState) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: [extension],
-      dialogTitle: id
-  );
-
-  if(result != null) {
-    setState(() {
-      prefs.setString(id, result.files.first.path!);
-    });
   }
 }
