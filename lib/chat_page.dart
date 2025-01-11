@@ -17,6 +17,7 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController promptController = TextEditingController();
   final ScrollController scrollController = ScrollController();
   final List<Map<String, String>> _chats = [];
+  bool _prompting = true;
 
   @override
   void initState() {
@@ -29,6 +30,30 @@ class _ChatPageState extends State<ChatPage> {
   void dispose() {
     ProcessManager.stop();
     super.dispose();
+  }
+  
+  Widget _promptField() {
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: TextField(
+            minLines: 1,
+            maxLines: 5,
+            controller: promptController,
+            obscureText: false,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Prompt',
+            ),
+          ),
+        ),
+        const SizedBox(width: 16.0),
+        FloatingActionButton(
+          onPressed: _submit,
+          child: const Icon(Icons.send_rounded),
+        ),
+      ],
+    );
   }
 
   @override
@@ -60,37 +85,52 @@ class _ChatPageState extends State<ChatPage> {
 
                 return Column(
                   children: [
-                    Card(
-                      child: Text(prompt),
+
+                    const SizedBox(height: 16),
+                    Card.outlined(
+                      color: Theme.of(context).colorScheme.onSecondaryFixed,
+                      margin: EdgeInsets.zero,
+                      child: Column(
+                        children: [
+                          Card(
+                            color: Theme.of(context).colorScheme.primaryContainer,
+                            margin: EdgeInsets.zero,
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16),
+                              child: Text(
+                                prompt,
+                                style: const TextStyle(
+                                  fontFamily: 'Ubuntu',
+                                  fontSize: 18,
+                                ),
+                                textAlign: TextAlign.left,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            child: Text(
+                              response,
+                              style: const TextStyle(
+                                fontFamily: 'Ubuntu',
+                                fontSize: 18,
+                              ),
+                              textAlign: TextAlign.left,
+                            ),
+                          ),
+                        ],
+                      )
                     ),
-                    Text(response),
+                    const SizedBox(height: 16),
                   ],
                 );
               },
             ),
           ),
           const SizedBox(height: 16.0),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: TextField(
-                  minLines: 1,
-                  maxLines: 5,
-                  controller: promptController,
-                  obscureText: false,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Prompt',
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16.0),
-              FloatingActionButton(
-                onPressed: _submit,
-                child: const Icon(Icons.send_rounded),
-              ),
-            ],
-          ),
+          _prompting ? _promptField() : Container()
         ],
       ),
     ),
@@ -109,11 +149,15 @@ class _ChatPageState extends State<ChatPage> {
       _chats.add({prompt: 'ans'});
     });
 
-    scrollController.animateTo(
-      scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.ease,
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scrollController.animateTo(
+        scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.ease,
+      );
+    });
+    
+    // _prompting = false;
   }
 
   void _listener(String answer) {

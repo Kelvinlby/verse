@@ -78,11 +78,31 @@ flutter:
   fonts:
   - family: JetBrains Mono
     fonts:
-      - asset: fonts/JetBrainsMono-Regular.ttf
+      - asset: fonts/JetBrainsMono/JetBrainsMono-Regular.ttf
 
   - family: JetBrains Mono Bold
     fonts:
-      - asset: fonts/JetBrainsMono-Bold.ttf
-  #
+      - asset: fonts/JetBrainsMono/JetBrainsMono-Bold.ttf
+
+  - family: Ubuntu
+    fonts:
+      - asset: fonts/Ubuntu/Ubuntu-Regular.ttf
+
+  - family: Ubuntu
+    fonts:
+      - asset: fonts/Ubuntu/Ubuntu-Regular.ttf
+
+  - family: Ubuntu Bold
+    fonts:
+      - asset: fonts/Ubuntu/Ubuntu-Bold.ttf
+
+  - family: Ubuntu Italic
+    fonts:
+      - asset: fonts/Ubuntu/Ubuntu-Italic.ttf
+
+  - family: Ubuntu BoldItalic
+    fonts:
+      - asset: fonts/Ubuntu/Ubuntu-BoldItalic.ttf
+
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
