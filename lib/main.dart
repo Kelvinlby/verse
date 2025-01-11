@@ -51,7 +51,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ProcessManager.isRunning ? ChatPage() : Launcher()
+      body: const Launcher()
     );
   }
 }

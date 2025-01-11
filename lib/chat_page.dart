@@ -5,7 +5,8 @@ import 'package:verse/process_manager.dart';
 
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key});
+  const ChatPage({super.key, required this.param});
+  final List param;
 
   @override
   State<StatefulWidget> createState() => _ChatPageState();
@@ -41,7 +42,50 @@ class _ChatPageState extends State<ChatPage> {
     },
   );
 
+  void _alert(String message) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                SelectableText(
+                  message,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontFamily: 'JetBrains Mono',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              autofocus: true,
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<Widget> _getChatPageContent(ThemeData theme) async {
-    return Text('sss');
+    return Scaffold(
+      body: Center(
+        child: Text(
+          'SSS',
+          style: const TextStyle(
+            fontFamily: 'JetBrains Mono Bold',
+            fontSize: 17,
+          ),
+        ),
+      ),
+    );
   }
 }

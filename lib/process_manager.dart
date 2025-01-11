@@ -21,20 +21,19 @@ abstract class ProcessManager {
       _stdoutSubscription = _process?.stdout.listen((data) {
           listener?.call(String.fromCharCodes(data));
         },
-        onError: (e) { print(e); }
+        onError: (e) {}
       );
 
       _stderrSubscription = _process?.stderr.listen((data) {
           error?.call(String.fromCharCodes(data));
         },
-        onError: (e) { print(e); }
+        onError: (e) {}
       );
 
       _process?.exitCode.then((code) {
         finish?.call();
         _cleanup();
       }).catchError((e) {
-        print(e);
         _cleanup();
       });
 

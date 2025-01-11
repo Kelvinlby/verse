@@ -1,10 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:verse/main.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verse/process_manager.dart';
+import 'package:verse/widgets/xla_controller.dart';
+import 'package:verse/chat_page.dart';
 
 
 class Launcher extends StatefulWidget {
@@ -18,15 +18,13 @@ class Launcher extends StatefulWidget {
 class _LauncherState extends State<Launcher> {
   final width = 320.0;
   final overflowLength = 23;
-  bool _xlaPreAllocatingStatus = true;
-  int _preAllocationRatio = 75;
 
   @override
   Widget build(BuildContext context) => FutureBuilder(
     future: _getLauncher(Theme.of(context)),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return snapshot.data!;
+        return Container();
       }
       else if (snapshot.hasError) {
         return Column(
@@ -49,71 +47,7 @@ class _LauncherState extends State<Launcher> {
     },
   );
 
-  Widget _xlaController(ThemeData theme) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                const SizedBox(width: 4),
-                Text(
-                  'XLA Pre-Allocation',
-                  style: const TextStyle(
-                    fontFamily: 'JetBrains Mono Bold',
-                    fontSize: 17,
-                  ),
-                ),
-              ],
-            ),
-            Switch(
-              value: _xlaPreAllocatingStatus,
-              activeColor: theme.colorScheme.primary,
-              onChanged: (bool value) {
-                setState(() {
-                  _xlaPreAllocatingStatus = value;
-                });
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        if (_xlaPreAllocatingStatus) Card(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  const SizedBox(width: 24),
-                  Text(
-                    'Allocation Ratio:  ${_preAllocationRatio.toString().padLeft(2, ' ')}%',
-                    style: const TextStyle(
-                      fontFamily: 'JetBrains Mono Bold',
-                      fontSize: 17,
-                    ),
-                  ),
-                ],
-              ),
-              Slider(
-                value: _preAllocationRatio.toDouble(),
-                max: 99,
-                label: _preAllocationRatio.toString(),
-                onChanged: (double value) {
-                  setState(() {
-                    _preAllocationRatio = value.round();
-                  });
-                },
-              ),
-            ],
-          )
-        ),
-      ],
-    );
-  }
-
-  void _pickPath(String id, String extension, Function setState) async {
+  void _pickPath(String id, String extension) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -131,48 +65,18 @@ class _LauncherState extends State<Launcher> {
   void _launch(String interpreterPath, String scriptPath) {
     Map<String, String> env = {'PYTHONUNBUFFERED': '1'};
 
-    if (_xlaPreAllocatingStatus) {
-      env.addAll({'XLA_PYTHON_CLIENT_MEM_FRACTION': '.$_preAllocationRatio'});
+    if (xlaPreAllocatingStatus) {
+      env.addAll({'XLA_PYTHON_CLIENT_MEM_FRACTION': '.$preAllocationRatio'});
     }
     else {
       env.addAll({'XLA_PYTHON_CLIENT_ALLOCATOR': 'platform'});
     }
 
-    ProcessManager.start(interpreterPath, scriptPath, env, error: _alert);
-    print(ProcessManager.isRunning);
-    setState(() {});
-  }
-
-  void _alert(String message) {
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Error'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                SelectableText(
-                  message,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontFamily: 'JetBrains Mono',
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              autofocus: true,
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatPage(param: [interpreterPath, scriptPath, env]),
+      ),
     );
   }
 
@@ -222,7 +126,7 @@ class _LauncherState extends State<Launcher> {
                         labelText: 'Interpreter',
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.folder_outlined),
-                          onPressed: () { _pickPath('Path to Interpreter', '', setState); },
+                          onPressed: () { _pickPath('Path to Interpreter', ''); },
                         ),
                       )
                     : interpreterPathEllipsis
@@ -232,7 +136,7 @@ class _LauncherState extends State<Launcher> {
                           prefix: const Text('...', style: TextStyle(color: Colors.grey)),
                           suffixIcon: IconButton(
                             icon: const Icon(Icons.folder_outlined),
-                            onPressed: () { _pickPath('Path to Interpreter', '', setState); },
+                            onPressed: () { _pickPath('Path to Interpreter', ''); },
                           ),
                         )
                       : InputDecoration(
@@ -240,7 +144,7 @@ class _LauncherState extends State<Launcher> {
                         labelText: 'Interpreter',
                         suffixIcon: IconButton(
                             icon: const Icon(Icons.folder_outlined),
-                            onPressed: () { _pickPath('Path to Interpreter', '', setState); },
+                            onPressed: () { _pickPath('Path to Interpreter', ''); },
                           ),
                         )
               ),
@@ -260,7 +164,7 @@ class _LauncherState extends State<Launcher> {
                         prefix: const Text('...', style: TextStyle(color: Colors.grey)),
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.folder_outlined),
-                          onPressed: () { _pickPath('Path to Script', 'py', setState); },
+                          onPressed: () { _pickPath('Path to Script', 'py'); },
                         ),
                       )
                     : InputDecoration(
@@ -268,22 +172,21 @@ class _LauncherState extends State<Launcher> {
                         labelText: 'Script',
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.folder_outlined),
-                          onPressed: () { _pickPath('Path to Script', 'py', setState); },
+                          onPressed: () { _pickPath('Path to Script', 'py'); },
                         ),
                       )
               ),
             ),
-            arg.contains('-xla') ? _xlaController(theme) : const SizedBox(height: 8),
+            arg.contains('-xla') ? XlaController() : const SizedBox(height: 8),
             const SizedBox(height: 8),
             FloatingActionButton.extended(
-              tooltip: 'Launch',
               icon: Icon(Icons.rocket_launch),
               label: const Text('Launch'),
               onPressed: () {
                 if (interpreterPath == null || scriptPath == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: const Text('Configuration not complete!'),
+                      content: const Text('Missing configuration!'),
                     ),
                   );
                 }
