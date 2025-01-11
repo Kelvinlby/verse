@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:verse/main.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verse/process_manager.dart';
@@ -21,19 +22,7 @@ class _LauncherState extends State<Launcher> {
     future: _getLauncher(Theme.of(context)),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return Column(
-          children: [
-            const Icon(Icons.access_time_outlined),
-            const SizedBox(height: 8),
-            Text(
-              'Loading ...',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                fontSize: 18,
-              ),
-            ),
-          ],
-        );
+        return snapshot.data!;
       }
       else if (snapshot.hasError) {
         return Column(
@@ -55,6 +44,70 @@ class _LauncherState extends State<Launcher> {
       }
     },
   );
+
+  Widget _xlaController(ThemeData theme) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                const SizedBox(width: 4),
+                Text(
+                  'XLA Pre-Allocation',
+                  style: const TextStyle(
+                    fontFamily: 'JetBrains Mono Bold',
+                    fontSize: 17,
+                  ),
+                ),
+              ],
+            ),
+            Switch(
+              value: xlaPreAllocatingStatus,
+              activeColor: theme.colorScheme.primary,
+              onChanged: (bool value) {
+                setState(() {
+                  xlaPreAllocatingStatus = value;
+                });
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (xlaPreAllocatingStatus) Card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const SizedBox(width: 24),
+                  Text(
+                    'Allocation Ratio:  ${preAllocationRate.toString().padLeft(2, ' ')}%',
+                    style: const TextStyle(
+                      fontFamily: 'JetBrains Mono Bold',
+                      fontSize: 17,
+                    ),
+                  ),
+                ],
+              ),
+              Slider(
+                value: preAllocationRate.toDouble(),
+                max: 99,
+                label: preAllocationRate.toString(),
+                onChanged: (double value) {
+                  setState(() {
+                    preAllocationRate = value.round();
+                  });
+                },
+              ),
+            ],
+          )
+        ),
+      ],
+    );
+  }
 
   Future<Widget> _getLauncher(ThemeData theme) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -136,11 +189,11 @@ class _LauncherState extends State<Launcher> {
                 decoration: scriptPathEllipsis
                     ? InputDecoration(
                         border: const OutlineInputBorder(),
-                        labelText: 'Config',
+                        labelText: 'Script',
                         prefix: const Text('...', style: TextStyle(color: Colors.grey)),
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.folder_outlined),
-                          onPressed: () { _pickPath('Path to Config', 'json', setState); },
+                          onPressed: () { _pickPath('Path to Script', 'py', setState); },
                         ),
                       )
                     : InputDecoration(
@@ -148,11 +201,13 @@ class _LauncherState extends State<Launcher> {
                         labelText: 'Script',
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.folder_outlined),
-                          onPressed: () { _pickPath('Path to Script', 'json', setState); },
+                          onPressed: () { _pickPath('Path to Script', 'py', setState); },
                         ),
                       )
               ),
             ),
+            arg.contains('-xla') ? _xlaController(theme) : const SizedBox(height: 8),
+            const SizedBox(height: 8),
           ],
         ),
       ),

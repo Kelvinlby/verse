@@ -3,6 +3,8 @@ import 'dart:io';
 
 
 typedef ProcessCompletionCallback = void Function();
+bool xlaPreAllocatingStatus = true;
+int preAllocationRate = 75;
 
 
 abstract class ProcessManager {
