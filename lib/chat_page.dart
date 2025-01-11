@@ -79,7 +79,7 @@ class _ChatPageState extends State<ChatPage> {
     return Scaffold(
       body: Center(
         child: Text(
-          'SSS',
+          'Param: ${widget.param}',
           style: const TextStyle(
             fontFamily: 'JetBrains Mono Bold',
             fontSize: 17,
