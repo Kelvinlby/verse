@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:verse/process_manager.dart';
 import 'package:verse/launcher.dart';
-import 'package:verse/chat_page.dart';
 
 
 late final List<String> arg;

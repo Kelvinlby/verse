@@ -24,7 +24,7 @@ class _LauncherState extends State<Launcher> {
     future: _getLauncher(Theme.of(context)),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return Container();
+        return Center(child: CircularProgressIndicator());
       }
       else if (snapshot.hasError) {
         return Column(
@@ -75,7 +75,7 @@ class _LauncherState extends State<Launcher> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ChatPage(param: [interpreterPath, scriptPath, env]),
+        builder: (context) => ChatPage(interpreterPath: interpreterPath, scriptPath: scriptPath, env: env),
       ),
     );
   }
