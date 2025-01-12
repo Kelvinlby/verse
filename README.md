@@ -1,5 +1,10 @@
-# verse
-Frontend GUI for LLMs.
+<div align="center">
+  <img src="icon.png" alt="Logo" width="128" height="128">
+<h2 align="center">verse</h2>
+<p>Frontend GUI for LLMs</p>
+</div>
+
+<br>
 
 ## Features
 - No limitations in ML framswork / platform
