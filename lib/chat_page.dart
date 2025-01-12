@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:verse/process_manager.dart';
+import 'package:markdown/markdown.dart' as md;
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_markdown_latex/flutter_markdown_latex.dart';
 
 
 class ChatPage extends StatefulWidget {
@@ -100,14 +103,7 @@ class _ChatPageState extends State<ChatPage> {
                             child: Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(16),
-                              child: SelectableText(
-                                prompt,
-                                style: const TextStyle(
-                                  fontFamily: 'Ubuntu',
-                                  fontSize: 18,
-                                ),
-                                textAlign: TextAlign.left,
-                              ),
+                              child: _markdownRenderer(prompt),
                             ),
                           ),
                           Container(
@@ -115,14 +111,7 @@ class _ChatPageState extends State<ChatPage> {
                             padding: const EdgeInsets.all(16),
                             child: response == null
                               ? LinearProgressIndicator()
-                              : SelectableText(
-                                  response,
-                                  style: const TextStyle(
-                                    fontFamily: 'Ubuntu',
-                                    fontSize: 18,
-                                  ),
-                                  textAlign: TextAlign.left,
-                                ),
+                              : _markdownRenderer(response),
                           ),
                         ],
                       )
@@ -137,6 +126,29 @@ class _ChatPageState extends State<ChatPage> {
           _prompting ? _promptField() : Container()
         ],
       ),
+    ),
+  );
+
+  Widget _markdownRenderer(String text) => MarkdownBody(
+    selectable: true,
+    data: text,
+    styleSheet: MarkdownStyleSheet(
+      p: const TextStyle(fontSize: 18.0, fontFamily: 'Ubuntu'),
+      h1: const TextStyle(fontSize: 26.0, fontFamily: 'Ubuntu Bold'),
+      h2: const TextStyle(fontSize: 24.0, fontFamily: 'Ubuntu Bold'),
+      h3: const TextStyle(fontSize: 22.0, fontFamily: 'Ubuntu Bold'),
+      h4: const TextStyle(fontSize: 20.0, fontFamily: 'Ubuntu Bold'),
+      code: const TextStyle(fontSize: 18.0, fontFamily: 'JetBrains Mono'),
+    ),
+    builders: {
+      'latex': LatexElementBuilder(
+        textStyle: const TextStyle(fontFamily: 'Ubuntu', fontSize: 18),
+        textScaleFactor: 1.2,
+      ),
+    },
+    extensionSet: md.ExtensionSet(
+      [LatexBlockSyntax()],
+      [LatexInlineSyntax()],
     ),
   );
 
