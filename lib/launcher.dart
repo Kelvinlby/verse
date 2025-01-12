@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:verse/main.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:verse/process_manager.dart';
 import 'package:verse/widgets/xla_controller.dart';
 import 'package:verse/chat_page.dart';
 
