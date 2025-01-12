@@ -1,6 +1,6 @@
 <div align="center">
   <img src="icon.png" alt="Logo" width="128" height="128">
-<h2 align="center">verse</h2>
+<h1 align="center">verse</h1>
 <p>Frontend GUI for LLMs</p>
 </div>
 
