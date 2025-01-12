@@ -28,5 +28,9 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>ProgramArguments</key>
+	<array>
+    		<string>-xla</string>
+	</array>
 </dict>
 </plist>

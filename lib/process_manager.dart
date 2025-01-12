@@ -40,6 +40,7 @@ abstract class ProcessManager {
       return true;
     }
     catch (e) {
+      error?.call('Launch Failed: \n$e');
       await _cleanup();
       return false;
     }
