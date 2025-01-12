@@ -16,9 +16,9 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController promptController = TextEditingController();
   final ScrollController scrollController = ScrollController();
-  final List<Map<String, String>> _chats = [];
-  bool _prompting = true, _responseReady = false;
-  String _buff = '';
+  final List<Map<String, String?>> _chats = [];
+  bool _prompting = true;
+  String _response = '';
 
   @override
   void initState() {
@@ -43,7 +43,9 @@ class _ChatPageState extends State<ChatPage> {
             controller: promptController,
             obscureText: false,
             decoration: const InputDecoration(
-              border: OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(8.0)),
+              ),
               labelText: 'Prompt',
             ),
           ),
@@ -86,7 +88,6 @@ class _ChatPageState extends State<ChatPage> {
 
                 return Column(
                   children: [
-
                     const SizedBox(height: 16),
                     Card.outlined(
                       color: Theme.of(context).colorScheme.onSecondaryFixed,
@@ -99,7 +100,7 @@ class _ChatPageState extends State<ChatPage> {
                             child: Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(16),
-                              child: Text(
+                              child: SelectableText(
                                 prompt,
                                 style: const TextStyle(
                                   fontFamily: 'Ubuntu',
@@ -112,14 +113,16 @@ class _ChatPageState extends State<ChatPage> {
                           Container(
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
-                            child: Text(
-                              response,
-                              style: const TextStyle(
-                                fontFamily: 'Ubuntu',
-                                fontSize: 18,
-                              ),
-                              textAlign: TextAlign.left,
-                            ),
+                            child: response == null
+                              ? LinearProgressIndicator()
+                              : SelectableText(
+                                  response,
+                                  style: const TextStyle(
+                                    fontFamily: 'Ubuntu',
+                                    fontSize: 18,
+                                  ),
+                                  textAlign: TextAlign.left,
+                                ),
                           ),
                         ],
                       )
@@ -139,39 +142,40 @@ class _ChatPageState extends State<ChatPage> {
 
   void _submit() {
     String prompt = promptController.text;
-    setState(() {
-      _prompting = false;
-    });
 
     if (prompt.isEmpty) return;
 
     prompt = prompt.trim();
     promptController.clear();
 
-    ProcessManager.input(prompt);
-
-    // TODO value-on-change listener implementation here
-
     setState(() {
-      _prompting = true;
-      _chats.add({prompt: 'ans'});
+      _prompting = false;
+      _chats.add({prompt: null});
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      scrollController.animateTo(
-        scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.ease,
-      );
-    });
+    ProcessManager.input(prompt);
   }
 
   void _listener(String answer) {
-    _buff = _buff + answer;
+    _response = _response + answer;
 
-    if (answer.contains('#END#')) {
-      _buff.replaceAll('#END#', '');
-      _responseReady = true;
+    if (answer.contains('\\end')) {
+      _response = _response.replaceAll('\\end', '');
+
+      setState(() {
+        _chats.last = {_chats.last.keys.first: _response.trim()};
+        _prompting = true;
+      });
+
+      _response = '';
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        scrollController.animateTo(
+          scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.ease,
+        );
+      });
     }
   }
 
