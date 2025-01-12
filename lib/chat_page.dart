@@ -180,15 +180,20 @@ class _ChatPageState extends State<ChatPage> {
       });
 
       _response = '';
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        scrollController.animateTo(
-          scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.ease,
-        );
+    }
+    else {
+      setState(() {
+        _chats.last = {_chats.last.keys.first: _response.trim()};
       });
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scrollController.animateTo(
+        scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.ease,
+      );
+    });
   }
 
   void _quit() {
