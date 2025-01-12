@@ -8,8 +8,7 @@ late final List<String> arg;
 
 void main(List<String> args) {
   runApp(const MyApp());
-  // arg = args;
-  arg = ['-xla'];
+  arg = args;
 }
 
 
