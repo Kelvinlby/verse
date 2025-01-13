@@ -20,10 +20,19 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'verse',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.lightGreen,
+          brightness: Brightness.light,
+        ),
         useMaterial3: true,
       ),
-      darkTheme: ThemeData.dark(),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.lightGreen,
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+      ),
       themeMode: ThemeMode.system,
       home: const HomePage(),
     );
