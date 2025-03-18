@@ -21,7 +21,6 @@ class _ChatPageState extends State<ChatPage> {
   final ScrollController scrollController = ScrollController();
   final List<Map<String, String?>> _chats = [];
   bool _prompting = true;
-  String _response = '';
 
   @override
   void initState() {
@@ -168,22 +167,18 @@ class _ChatPageState extends State<ChatPage> {
     ProcessManager.input(prompt);
   }
 
-  void _listener(String answer) {
-    _response = _response + answer;
-
-    if (answer.contains('\\end')) {
-      _response = _response.replaceAll('\\end', '');
+  void _listener(String response) {
+    if (response.contains('\\end')) {
+      response = response.replaceAll('\\end', '');
 
       setState(() {
-        _chats.last = {_chats.last.keys.first: _response.trim()};
+        _chats.last = {_chats.last.keys.first: response.trim()};
         _prompting = true;
       });
-
-      _response = '';
     }
     else {
       setState(() {
-        _chats.last = {_chats.last.keys.first: _response.trim()};
+        _chats.last = {_chats.last.keys.first: response.trim()};
       });
     }
 

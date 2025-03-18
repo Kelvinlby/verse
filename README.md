@@ -18,6 +18,8 @@ The only thing you needs to do is to prepare a python script
 While True:
     x = input()   # VERSE will sent your prompt as input
     # Your inference code
-    print(response) # VERSE will record any printed content as response
+    print(response)
+    # VERSE will record any printed content as latest response and previous
+    # responses will be overwritten, so remember to print complete sentences.
     print('\\end')  # VERSE will know the response is finished
 ```
